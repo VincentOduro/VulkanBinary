@@ -9,10 +9,12 @@ int main()
 {
     // Create an instance of VkRenderer
     Game app;
+    VkRenderer renderer;
 
     try {
         // Attempt to run the renderer
-        app.run();
+        //app.run();
+        renderer.run();
     }
     catch (const std::exception& e) {
         // If an exception is caught, print the error message and return failure

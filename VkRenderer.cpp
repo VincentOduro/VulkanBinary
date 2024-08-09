@@ -2,14 +2,48 @@
 
 
 
+void VkRenderer::run()
+{
+    initWindow();
+    initVulkan();
+    //mainLoop();
+    cleanup();
+}
+
 void VkRenderer::initWindow()
 {
+    // Initialise GLFW and OpenGL
     glfwInit();
-
+    // Tell GLFW not to create an OpenGL context since we don't need one
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    // Don't worry about resizing the window for now, just disable it
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-    window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
+    // Store a handle to our window in our class
+    _window = glfwCreateWindow(WIDTH, HEIGHT, "VulkanBinary", nullptr, nullptr);
+
+    glfwSetWindowUserPointer(_window, this); // Allows us to set the owner instance class for this window
+}
+
+void VkRenderer::initVulkan()
+{
+    createInstance();
+}
+
+void VkRenderer::mainLoop()
+{
+    while (!glfwWindowShouldClose(_window)) {
+        glfwPollEvents();
+    }
+}
+
+void VkRenderer::cleanup()
+{
+    vkDestroyInstance(_instance, nullptr);
+
+    glfwDestroyWindow(_window);
+
+    glfwTerminate();
 }
 
 void VkRenderer::createInstance() {
@@ -34,7 +68,7 @@ void VkRenderer::createInstance() {
 
     createInfo.enabledLayerCount = 0;
 
-    if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
+    if (vkCreateInstance(&createInfo, nullptr, &_instance) != VK_SUCCESS) {
         throw std::runtime_error("failed to create instance!");
     }
 }

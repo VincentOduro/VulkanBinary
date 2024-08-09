@@ -9,20 +9,27 @@
 
 class VkRenderer {
 
+public:
+    void run();
+
+
 private:
     /// Set window dimensions
     static constexpr uint32_t WIDTH = 800;
     static constexpr uint32_t HEIGHT = 600;
 
     // Handle to the GLFW window
-    GLFWwindow* window;
+    GLFWwindow* _window;
 
     // Vulkan instance handle
-    VkInstance instance;
+    VkInstance _instance;
 
     void initWindow();
-    void createInstance();
+    void initVulkan();  // Initializes Vulkan
+    void mainLoop();    // Main game loop
+    void cleanup();     // Cleans up resources
  
+    void createInstance();
 
  };
 

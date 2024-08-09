@@ -13,10 +13,7 @@ public:
     void run(); // Runs the main game loop
 
 private:
-    void initWindow();
-    void initVulkan();  // Initializes Vulkan
-    void mainLoop();    // Main game loop
-    void cleanup();     // Cleans up resources
+
 
     GLFWwindow* _window;          // Pointer to the GLFW window
     VkRenderer vulkanRenderer; // Vulkan renderer instance
