@@ -6,7 +6,10 @@ void VkRenderer::run()
 {
     initWindow();
     initVulkan();
-    //mainLoop();
+#ifdef _DEBUG
+    PrintDebugInfo();
+#endif
+    mainLoop();
     cleanup();
 }
 
@@ -47,29 +50,71 @@ void VkRenderer::cleanup()
 }
 
 void VkRenderer::createInstance() {
-    VkApplicationInfo appInfo{};
+    // Optional info for the driver
+    VkApplicationInfo appInfo{}; // Curly braces very important here, they initialize all fields to 0/null/a defined value
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName = "Hello Triangle";
+    appInfo.pApplicationName = "VulkanBinary";
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.pEngineName = "No Engine";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion = VK_API_VERSION_1_0;
+    appInfo.apiVersion = VK_API_VERSION_1_0; // TODO: Update version
 
-    VkInstanceCreateInfo createInfo{};
-    createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    createInfo.pApplicationInfo = &appInfo;
+    // Mandatory info to create the instance
+    VkInstanceCreateInfo instanceCreateInfo{};
+    instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    instanceCreateInfo.pApplicationInfo = &appInfo;
 
+    std::vector<std::string> requiredExtensions = GetRequiredExtensions();
+
+    std::vector<const char*> extensionsCString;
+    extensionsCString.reserve(requiredExtensions.size());
+
+    for (const auto& extension : requiredExtensions)
+    {
+        extensionsCString.push_back(extension.c_str());
+    }
+
+
+    instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(requiredExtensions.size());
+    instanceCreateInfo.ppEnabledExtensionNames = extensionsCString.data();
+    instanceCreateInfo.enabledLayerCount = 0; // TODO: Enable validation layers
+
+    VK_CHECK_RESULT(vkCreateInstance(&instanceCreateInfo, nullptr, &_instance), "create instance");
+}
+
+std::vector<std::string> VkRenderer::GetRequiredExtensions()
+{
+    std::vector<std::string> requiredExtensions;
+
+    /// GLFW EXTENSIONS
     uint32_t glfwExtensionCount = 0;
     const char** glfwExtensions;
+
     glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
-    createInfo.enabledExtensionCount = glfwExtensionCount;
-    createInfo.ppEnabledExtensionNames = glfwExtensions;
 
-    createInfo.enabledLayerCount = 0;
+    for (size_t i = 0; i < glfwExtensionCount; i++)
+    {
+        const std::string extension(glfwExtensions[i]);
+        requiredExtensions.push_back(extension);
+    }
 
-    if (vkCreateInstance(&createInfo, nullptr, &_instance) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create instance!");
+    return requiredExtensions;
+}
+
+void VkRenderer::PrintDebugInfo()
+{
+    uint32_t extensionCount = 0;
+    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+
+    std::vector<VkExtensionProperties> extensions(extensionCount);
+
+    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
+
+    std::cout << "Available extensions: " << "\n";
+    for (const auto& extension : extensions)
+    {
+        std::cout << extension.extensionName << ", Version: " << extension.specVersion << "\n";
     }
 }
 
