@@ -10,10 +10,10 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMes
     }
 }
 
-void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT _debugMessenger, const VkAllocationCallbacks* pAllocator) {
+void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
     auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
     if (func != nullptr) {
-        func(instance, _debugMessenger, pAllocator);
+        func(instance, debugMessenger, pAllocator);
     }
 }
 
@@ -47,6 +47,8 @@ void VkRenderer::initWindow()
 void VkRenderer::initVulkan()
 {
     createInstance();
+    setupDebugMessenger();
+    pickPhysicalDevice();
 }
 
 void VkRenderer::mainLoop()
@@ -58,6 +60,10 @@ void VkRenderer::mainLoop()
 
 void VkRenderer::cleanup()
 {
+    if (enableValidationLayers) {
+        DestroyDebugUtilsMessengerEXT(_instance, _debugMessenger, nullptr);
+    }
+
     vkDestroyInstance(_instance, nullptr);
 
     glfwDestroyWindow(_window);
@@ -66,36 +72,53 @@ void VkRenderer::cleanup()
 }
 
 void VkRenderer::createInstance() {
-    // Optional info for the driver
-    VkApplicationInfo appInfo{}; // Curly braces very important here, they initialize all fields to 0/null/a defined value
+    if (enableValidationLayers && !checkValidationLayerSupport()) {
+        throw std::runtime_error("validation layers requested, but not available!");
+    }
+
+    VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName = "VulkanBinary";
+    appInfo.pApplicationName = "Hello Triangle";
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.pEngineName = "No Engine";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion = VK_API_VERSION_1_0; // TODO: Update version
+    appInfo.apiVersion = VK_API_VERSION_1_0;
 
-    // Mandatory info to create the instance
-    VkInstanceCreateInfo instanceCreateInfo{};
-    instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    instanceCreateInfo.pApplicationInfo = &appInfo;
+    VkInstanceCreateInfo createInfo{};
+    createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    createInfo.pApplicationInfo = &appInfo;
 
-    std::vector<std::string> requiredExtensions = GetRequiredExtensions();
+    std::vector<std::string> extensions = getRequiredExtensions();
 
+    //convert the extension to C stlye to avoid type conversion errors  
     std::vector<const char*> extensionsCString;
-    extensionsCString.reserve(requiredExtensions.size());
+    extensionsCString.reserve(extensions.size());
 
-    for (const auto& extension : requiredExtensions)
+    for (const auto& extension : extensions)
     {
         extensionsCString.push_back(extension.c_str());
     }
 
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+    createInfo.ppEnabledExtensionNames = extensionsCString.data();
 
-    instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(requiredExtensions.size());
-    instanceCreateInfo.ppEnabledExtensionNames = extensionsCString.data();
-    instanceCreateInfo.enabledLayerCount = 0; // TODO: Enable validation layers
+    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
+    if (enableValidationLayers) {
+        createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+        createInfo.ppEnabledLayerNames = validationLayers.data();
 
-    VK_CHECK_RESULT(vkCreateInstance(&instanceCreateInfo, nullptr, &_instance), "create instance");
+        populateDebugMessengerCreateInfo(debugCreateInfo);
+        createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
+    }
+    else {
+        createInfo.enabledLayerCount = 0;
+
+        createInfo.pNext = nullptr;
+    }
+
+    if (vkCreateInstance(&createInfo, nullptr, &_instance) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create instance!");
+    }
 }
 
 void VkRenderer::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
@@ -117,6 +140,64 @@ void VkRenderer::setupDebugMessenger()
     if (CreateDebugUtilsMessengerEXT(_instance, &createInfo, nullptr, &_debugMessenger) != VK_SUCCESS) {
         throw std::runtime_error("failed to set up debug messenger!");
     }
+}
+
+void VkRenderer::pickPhysicalDevice()
+{
+    uint32_t deviceCount = 0;
+    vkEnumeratePhysicalDevices(_instance, &deviceCount, nullptr);
+
+    if (deviceCount == 0) {
+        throw std::runtime_error("failed to find GPUs with Vulkan support!");
+    }
+
+    std::vector<VkPhysicalDevice> devices(deviceCount);
+    vkEnumeratePhysicalDevices(_instance, &deviceCount, devices.data());
+
+    for (const auto& device : devices) {
+        if (isDeviceSuitable(device)) {
+            _physicalDevice = device;
+            break;
+        }
+    }
+
+    if (_physicalDevice == VK_NULL_HANDLE) {
+        throw std::runtime_error("failed to find a suitable GPU!");
+    }
+
+}
+
+bool VkRenderer::isDeviceSuitable(VkPhysicalDevice device)
+{
+    QueueFamilyIndices indices = findQueueFamilies(device);
+
+    return indices.isComplete();
+}
+
+QueueFamilyIndices VkRenderer::findQueueFamilies(VkPhysicalDevice device)
+{
+    QueueFamilyIndices indices;
+
+    uint32_t queueFamilyCount = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+    int i = 0;
+    for (const auto& queueFamily : queueFamilies) {
+        if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            indices.graphicsFamily = i;
+        }
+
+        if (indices.isComplete()) {
+            break;
+        }
+
+        i++;
+    }
+
+    return indices;
 }
 
 bool VkRenderer::checkValidationLayerSupport()
@@ -145,7 +226,7 @@ bool VkRenderer::checkValidationLayerSupport()
     return true;
 }
 
-std::vector<std::string> VkRenderer::GetRequiredExtensions()
+std::vector<std::string> VkRenderer::getRequiredExtensions()
 {
     std::vector<std::string> requiredExtensions;
 

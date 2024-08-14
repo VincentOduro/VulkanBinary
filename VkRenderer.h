@@ -2,12 +2,13 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-//test comment
-#include<vector>
-#include<string>
 #include <iostream>
 #include <stdexcept>
+#include <vector>
+#include <cstring>
+#include <string>
 #include <cstdlib>
+#include <optional>
 
 #include <vulkan/vk_enum_string_helper.h >
 
@@ -26,6 +27,15 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityF
 
     return VK_FALSE;
 }
+
+struct QueueFamilyIndices {
+    std::optional<uint32_t> graphicsFamily;
+
+    bool isComplete() {
+        return graphicsFamily.has_value();
+    }
+};
+
 
 class VkRenderer {
 
@@ -48,6 +58,8 @@ private:
     VkInstance _instance;
 
     VkDebugUtilsMessengerEXT _debugMessenger;
+    
+    VkPhysicalDevice _physicalDevice = VK_NULL_HANDLE;
 
     void initWindow();
     void initVulkan();  // Initializes Vulkan
@@ -58,9 +70,15 @@ private:
     void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
     void setupDebugMessenger();
+    void pickPhysicalDevice();
+    bool isDeviceSuitable(VkPhysicalDevice device);
+    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+
+
     bool checkValidationLayerSupport();
 
-    std::vector <std::string> GetRequiredExtensions();
+    std::vector<std::string> getRequiredExtensions();
+
 
     static void VK_CHECK_RESULT(VkResult result, std::string action)
     {
@@ -74,5 +92,4 @@ private:
 
     void PrintDebugInfo();
  };
-
 
