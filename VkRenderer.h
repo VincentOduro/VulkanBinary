@@ -61,23 +61,23 @@ private:
     
     VkPhysicalDevice _physicalDevice = VK_NULL_HANDLE;
 
-    void initWindow();
-    void initVulkan();  // Initializes Vulkan
-    void mainLoop();    // Main game loop
-    void cleanup();     // Cleans up resources
+    void InitWindow();
+    void InitVulkan();  // Initializes Vulkan
+    void MainLoop();    // Main game loop
+    void Cleanup();     // Cleans up resources
  
-    void createInstance();
-    void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+    void CreateInstance();
+    void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
-    void setupDebugMessenger();
-    void pickPhysicalDevice();
-    bool isDeviceSuitable(VkPhysicalDevice device);
-    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+    void SetupDebugMessenger();
+    void PickPhysicalDevice();
+    bool IsDeviceSuitable(VkPhysicalDevice device);
+    QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
 
 
-    bool checkValidationLayerSupport();
+    bool CheckValidationLayerSupport();
 
-    std::vector<std::string> getRequiredExtensions();
+    std::vector<std::string> GetRequiredExtensions();
 
 
     static void VK_CHECK_RESULT(VkResult result, std::string action)

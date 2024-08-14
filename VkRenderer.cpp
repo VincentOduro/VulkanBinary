@@ -20,16 +20,16 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
 
 void VkRenderer::run()
 {
-    initWindow();
-    initVulkan();
+    InitWindow();
+    InitVulkan();
 #ifdef _DEBUG
     PrintDebugInfo();
 #endif
-    mainLoop();
-    cleanup();
+    MainLoop();
+    Cleanup();
 }
 
-void VkRenderer::initWindow()
+void VkRenderer::InitWindow()
 {
     // Initialise GLFW and OpenGL
     glfwInit();
@@ -44,21 +44,21 @@ void VkRenderer::initWindow()
     glfwSetWindowUserPointer(_window, this); // Allows us to set the owner instance class for this window
 }
 
-void VkRenderer::initVulkan()
+void VkRenderer::InitVulkan()
 {
-    createInstance();
-    setupDebugMessenger();
-    pickPhysicalDevice();
+    CreateInstance();
+    SetupDebugMessenger();
+    PickPhysicalDevice();
 }
 
-void VkRenderer::mainLoop()
+void VkRenderer::MainLoop()
 {
     while (!glfwWindowShouldClose(_window)) {
         glfwPollEvents();
     }
 }
 
-void VkRenderer::cleanup()
+void VkRenderer::Cleanup()
 {
     if (enableValidationLayers) {
         DestroyDebugUtilsMessengerEXT(_instance, _debugMessenger, nullptr);
@@ -71,8 +71,8 @@ void VkRenderer::cleanup()
     glfwTerminate();
 }
 
-void VkRenderer::createInstance() {
-    if (enableValidationLayers && !checkValidationLayerSupport()) {
+void VkRenderer::CreateInstance() {
+    if (enableValidationLayers && !CheckValidationLayerSupport()) {
         throw std::runtime_error("validation layers requested, but not available!");
     }
 
@@ -88,7 +88,7 @@ void VkRenderer::createInstance() {
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pApplicationInfo = &appInfo;
 
-    std::vector<std::string> extensions = getRequiredExtensions();
+    std::vector<std::string> extensions = GetRequiredExtensions();
 
     //convert the extension to C stlye to avoid type conversion errors  
     std::vector<const char*> extensionsCString;
@@ -107,7 +107,7 @@ void VkRenderer::createInstance() {
         createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
         createInfo.ppEnabledLayerNames = validationLayers.data();
 
-        populateDebugMessengerCreateInfo(debugCreateInfo);
+        PopulateDebugMessengerCreateInfo(debugCreateInfo);
         createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
     }
     else {
@@ -121,7 +121,7 @@ void VkRenderer::createInstance() {
     }
 }
 
-void VkRenderer::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
+void VkRenderer::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
 {
     createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -130,19 +130,19 @@ void VkRenderer::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInf
     createInfo.pfnUserCallback = debugCallback;
 }
 
-void VkRenderer::setupDebugMessenger()
+void VkRenderer::SetupDebugMessenger()
 {
     if (!enableValidationLayers) return;
 
     VkDebugUtilsMessengerCreateInfoEXT createInfo;
-    populateDebugMessengerCreateInfo(createInfo);
+    PopulateDebugMessengerCreateInfo(createInfo);
 
     if (CreateDebugUtilsMessengerEXT(_instance, &createInfo, nullptr, &_debugMessenger) != VK_SUCCESS) {
         throw std::runtime_error("failed to set up debug messenger!");
     }
 }
 
-void VkRenderer::pickPhysicalDevice()
+void VkRenderer::PickPhysicalDevice()
 {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(_instance, &deviceCount, nullptr);
@@ -155,7 +155,7 @@ void VkRenderer::pickPhysicalDevice()
     vkEnumeratePhysicalDevices(_instance, &deviceCount, devices.data());
 
     for (const auto& device : devices) {
-        if (isDeviceSuitable(device)) {
+        if (IsDeviceSuitable(device)) {
             _physicalDevice = device;
             break;
         }
@@ -167,14 +167,14 @@ void VkRenderer::pickPhysicalDevice()
 
 }
 
-bool VkRenderer::isDeviceSuitable(VkPhysicalDevice device)
+bool VkRenderer::IsDeviceSuitable(VkPhysicalDevice device)
 {
-    QueueFamilyIndices indices = findQueueFamilies(device);
+    QueueFamilyIndices indices = FindQueueFamilies(device);
 
     return indices.isComplete();
 }
 
-QueueFamilyIndices VkRenderer::findQueueFamilies(VkPhysicalDevice device)
+QueueFamilyIndices VkRenderer::FindQueueFamilies(VkPhysicalDevice device)
 {
     QueueFamilyIndices indices;
 
@@ -200,7 +200,7 @@ QueueFamilyIndices VkRenderer::findQueueFamilies(VkPhysicalDevice device)
     return indices;
 }
 
-bool VkRenderer::checkValidationLayerSupport()
+bool VkRenderer::CheckValidationLayerSupport()
 {
     uint32_t layerCount;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -226,7 +226,7 @@ bool VkRenderer::checkValidationLayerSupport()
     return true;
 }
 
-std::vector<std::string> VkRenderer::getRequiredExtensions()
+std::vector<std::string> VkRenderer::GetRequiredExtensions()
 {
     std::vector<std::string> requiredExtensions;
 
