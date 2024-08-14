@@ -12,21 +12,7 @@
 
 #include <vulkan/vk_enum_string_helper.h >
 
-const std::vector<const char*> validationLayers = {
-"VK_LAYER_KHRONOS_validation"
-};
 
-#ifdef NDEBUG
-const bool enableValidationLayers = false;
-#else
-const bool enableValidationLayers = true;
-#endif
-
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
-    std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
-
-    return VK_FALSE;
-}
 
 struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
@@ -48,7 +34,15 @@ private:
     static constexpr uint32_t WIDTH = 800;
     static constexpr uint32_t HEIGHT = 600;
 
+    const std::vector<const char*> _validationLayers = {
+        "VK_LAYER_KHRONOS_validation"
+    };
 
+#ifdef NDEBUG
+    const bool _enableValidationLayers = false;
+#else
+    const bool _enableValidationLayers = true;
+#endif
 
 
     // Handle to the GLFW window

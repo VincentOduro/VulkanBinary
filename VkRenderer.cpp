@@ -1,6 +1,6 @@
 #include "VkRenderer.h"
 
-VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
+static VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
     if (func != nullptr) {
         return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
@@ -10,11 +10,17 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMes
     }
 }
 
-void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
+static void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
     auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
     if (func != nullptr) {
         func(instance, debugMessenger, pAllocator);
     }
+}
+
+static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
+    std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+
+    return VK_FALSE;
 }
 
 
@@ -60,7 +66,7 @@ void VkRenderer::MainLoop()
 
 void VkRenderer::Cleanup()
 {
-    if (enableValidationLayers) {
+    if (_enableValidationLayers) {
         DestroyDebugUtilsMessengerEXT(_instance, _debugMessenger, nullptr);
     }
 
@@ -72,10 +78,11 @@ void VkRenderer::Cleanup()
 }
 
 void VkRenderer::CreateInstance() {
-    if (enableValidationLayers && !CheckValidationLayerSupport()) {
+    if (_enableValidationLayers && !CheckValidationLayerSupport()) {
         throw std::runtime_error("validation layers requested, but not available!");
     }
 
+    //optional info
     VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName = "Hello Triangle";
@@ -84,6 +91,7 @@ void VkRenderer::CreateInstance() {
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.apiVersion = VK_API_VERSION_1_0;
 
+    //Mandatory info needed to create the  
     VkInstanceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pApplicationInfo = &appInfo;
@@ -102,10 +110,13 @@ void VkRenderer::CreateInstance() {
     createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
     createInfo.ppEnabledExtensionNames = extensionsCString.data();
 
+    std::vector<const char*> layersCString;
+    layersCString.reserve(_validationLayers.size());
+
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-    if (enableValidationLayers) {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-        createInfo.ppEnabledLayerNames = validationLayers.data();
+    if (_enableValidationLayers) {
+        createInfo.enabledLayerCount = static_cast<uint32_t>(_validationLayers.size());
+        createInfo.ppEnabledLayerNames = _validationLayers.data();
 
         PopulateDebugMessengerCreateInfo(debugCreateInfo);
         createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
@@ -132,10 +143,12 @@ void VkRenderer::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInf
 
 void VkRenderer::SetupDebugMessenger()
 {
-    if (!enableValidationLayers) return;
+    if (!_enableValidationLayers) return;
 
     VkDebugUtilsMessengerCreateInfoEXT createInfo;
     PopulateDebugMessengerCreateInfo(createInfo);
+
+    VK_CHECK_RESULT(CreateDebugUtilsMessengerEXT(_instance, &createInfo, nullptr, &_debugMessenger), "create debug messenger");
 
     if (CreateDebugUtilsMessengerEXT(_instance, &createInfo, nullptr, &_debugMessenger) != VK_SUCCESS) {
         throw std::runtime_error("failed to set up debug messenger!");
@@ -208,7 +221,7 @@ bool VkRenderer::CheckValidationLayerSupport()
     std::vector<VkLayerProperties> availableLayers(layerCount);
     vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-    for (const char* layerName : validationLayers) {
+    for (const char* layerName : _validationLayers) {
         bool layerFound = false;
 
         for (const auto& layerProperties : availableLayers) {
@@ -243,6 +256,10 @@ std::vector<std::string> VkRenderer::GetRequiredExtensions()
         requiredExtensions.push_back(extension);
     }
 
+    // If validation layers are enabled, add the debug utils extension
+    if (_enableValidationLayers) {
+        requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    }
     return requiredExtensions;
 }
 
@@ -261,5 +278,7 @@ void VkRenderer::PrintDebugInfo()
         std::cout << extension.extensionName << ", Version: " << extension.specVersion << "\n";
     }
 }
+
+
 
 
