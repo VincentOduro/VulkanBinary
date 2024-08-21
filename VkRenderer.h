@@ -26,6 +26,13 @@ struct QueueFamilyIndices {
     }
 };
 
+const std::vector<const char*> _validationLayers = {
+    "VK_LAYER_KHRONOS_validation"
+};
+
+const std::vector<const char*> _deviceExtensions = {
+    VK_KHR_SWAPCHAIN_EXTENSION_NAME
+};
 
 class VkRenderer {
 
@@ -38,9 +45,8 @@ private:
     static constexpr uint32_t WIDTH = 800;
     static constexpr uint32_t HEIGHT = 600;
 
-    const std::vector<const char*> _validationLayers = {
-        "VK_LAYER_KHRONOS_validation"
-    };
+
+
 
 #ifdef NDEBUG
     const bool _enableValidationLayers = false;
@@ -77,6 +83,7 @@ private:
     void SetupDebugMessenger();
     void PickPhysicalDevice();
     bool IsDeviceSuitable(VkPhysicalDevice device);
+    bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
     QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
 
 
@@ -85,7 +92,7 @@ private:
     std::vector<std::string> GetRequiredExtensions();
     void CreateLogicalDevice();
 
- 
+
 
     void CreateSurface();
 
