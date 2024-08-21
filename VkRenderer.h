@@ -1,6 +1,9 @@
 #pragma once
+#define VK_USE_PLATFORM_WIN32_KHR
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
 
 #include <iostream>
 #include <stdexcept>
@@ -16,9 +19,10 @@
 
 struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
+    std::optional<uint32_t> presentFamily;
 
     bool isComplete() {
-        return graphicsFamily.has_value();
+        return graphicsFamily.has_value() && presentFamily.has_value();
     }
 };
 
@@ -59,6 +63,9 @@ private:
     VkDevice _device;
     VkQueue _graphicsQueue;
 
+    VkSurfaceKHR _surface;
+    VkQueue _presentQueue;
+
     void InitWindow();
     void InitVulkan();  // Initializes Vulkan
     void MainLoop();    // Main game loop
@@ -77,6 +84,12 @@ private:
 
     std::vector<std::string> GetRequiredExtensions();
     void CreateLogicalDevice();
+
+ 
+
+    void CreateSurface();
+
+
 
 
     static void VK_CHECK_RESULT(VkResult result, std::string action)
