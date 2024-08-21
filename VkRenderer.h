@@ -50,10 +50,14 @@ private:
 
     // Vulkan instance handle
     VkInstance _instance;
+    
 
     VkDebugUtilsMessengerEXT _debugMessenger;
     
     VkPhysicalDevice _physicalDevice = VK_NULL_HANDLE;
+    
+    VkDevice _device;
+    VkQueue _graphicsQueue;
 
     void InitWindow();
     void InitVulkan();  // Initializes Vulkan
@@ -72,6 +76,7 @@ private:
     bool CheckValidationLayerSupport();
 
     std::vector<std::string> GetRequiredExtensions();
+    void CreateLogicalDevice();
 
 
     static void VK_CHECK_RESULT(VkResult result, std::string action)
