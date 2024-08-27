@@ -7,11 +7,14 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <algorithm>
 #include <vector>
 #include <cstring>
-#include <string>
 #include <cstdlib>
+#include <cstdint>
+#include <limits>
 #include <optional>
+#include <set>
 
 #include <vulkan/vk_enum_string_helper.h >
 
@@ -24,6 +27,12 @@ struct QueueFamilyIndices {
     bool isComplete() {
         return graphicsFamily.has_value() && presentFamily.has_value();
     }
+};
+
+struct SwapChainSupportDetails {
+    VkSurfaceCapabilitiesKHR capabilities;
+    std::vector<VkSurfaceFormatKHR> formats;
+    std::vector<VkPresentModeKHR> presentModes;
 };
 
 const std::vector<const char*> _validationLayers = {
@@ -72,6 +81,11 @@ private:
     VkSurfaceKHR _surface;
     VkQueue _presentQueue;
 
+    VkSwapchainKHR _swapChain;
+    std::vector<VkImage> _swapChainImages;
+    VkFormat _swapChainImageFormat;
+    VkExtent2D _swapChainExtent;
+
     void InitWindow();
     void InitVulkan();  // Initializes Vulkan
     void MainLoop();    // Main game loop
@@ -79,23 +93,24 @@ private:
  
     void CreateInstance();
     void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
-
     void SetupDebugMessenger();
+
     void PickPhysicalDevice();
     bool IsDeviceSuitable(VkPhysicalDevice device);
     bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
     QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
-
 
     bool CheckValidationLayerSupport();
 
     std::vector<std::string> GetRequiredExtensions();
     void CreateLogicalDevice();
 
-
-
     void CreateSurface();
-
+    void CreateSwapChain();
+    VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+    SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device);
+    VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+    VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
 
 
