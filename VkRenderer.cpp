@@ -1,4 +1,7 @@
+#define NOMINMAX  // Prevent windows.h from defining min and max macros
 #include "VkRenderer.h"
+
+
 
 
 static VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
@@ -70,6 +73,9 @@ void VkRenderer::MainLoop()
 
 void VkRenderer::Cleanup()
 {
+    vkDestroySwapchainKHR(_device, _swapChain, nullptr);
+    vkDestroyDevice(_device, nullptr);
+
     vkDestroyDevice(_device, nullptr);
     if (_enableValidationLayers) {
         DestroyDebugUtilsMessengerEXT(_instance, _debugMessenger, nullptr);
@@ -231,17 +237,18 @@ QueueFamilyIndices VkRenderer::FindQueueFamilies(VkPhysicalDevice device)
             indices.graphicsFamily = i;
         }
 
+        VkBool32 presentSupport = false;
+        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, _surface, &presentSupport);
+
+        if (presentSupport) {
+            indices.presentFamily = i;
+        }
+
         if (indices.isComplete()) {
             break;
         }
 
         i++;
-    }
-
-    VkBool32 presentSupport = false;
-    vkGetPhysicalDeviceSurfaceSupportKHR(device, i, _surface, &presentSupport);
-    if (presentSupport) {
-        indices.presentFamily = i;
     }
 
     return indices;
@@ -314,7 +321,6 @@ void VkRenderer::CreateLogicalDevice()
         queueCreateInfos.push_back(queueCreateInfo);
     }
 
-
     VkPhysicalDeviceFeatures deviceFeatures{};
 
     VkDeviceCreateInfo createInfo{};
@@ -326,7 +332,8 @@ void VkRenderer::CreateLogicalDevice()
 
     createInfo.pEnabledFeatures = &deviceFeatures;
    
-    createInfo.enabledExtensionCount = 0;
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(_deviceExtensions.size());
+    createInfo.ppEnabledExtensionNames = _deviceExtensions.data();
 
     if (_enableValidationLayers) {
         createInfo.enabledLayerCount = static_cast<uint32_t>(_validationLayers.size());
@@ -365,6 +372,7 @@ void VkRenderer::CreateSwapChain()
     VkExtent2D extent = ChooseSwapExtent(swapChainSupport.capabilities);
 
     uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
+
     if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
         imageCount = swapChainSupport.capabilities.maxImageCount;
     }
@@ -459,7 +467,7 @@ VkPresentModeKHR VkRenderer::ChooseSwapPresentMode(const std::vector<VkPresentMo
 
 VkExtent2D VkRenderer::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities)
 {
-    if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max() ) {
+    if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
         return capabilities.currentExtent;
     }
     else {
