@@ -86,6 +86,8 @@ private:
     VkFormat _swapChainImageFormat;
     VkExtent2D _swapChainExtent;
 
+    std::vector<VkImageView> _swapChainImageViews;
+
     void InitWindow();
     void InitVulkan();  // Initializes Vulkan
     void MainLoop();    // Main game loop
@@ -112,7 +114,7 @@ private:
     VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
     VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
-
+    void CreateImageViews();
 
     static void VK_CHECK_RESULT(VkResult result, std::string action)
     {
