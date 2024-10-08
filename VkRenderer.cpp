@@ -63,6 +63,7 @@ void VkRenderer::InitVulkan()
     CreateLogicalDevice();
     CreateSwapChain();
     CreateImageViews();
+    createGraphicsPipeline();
 }
 
 void VkRenderer::MainLoop()

@@ -116,6 +116,8 @@ private:
 
     void CreateImageViews();
 
+    void createGraphicsPipeline();
+
     static void VK_CHECK_RESULT(VkResult result, std::string action)
     {
 #ifdef _DEBUG 
