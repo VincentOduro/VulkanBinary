@@ -16,6 +16,7 @@
 #include <optional>
 #include <set>
 
+
 #include <vulkan/vk_enum_string_helper.h >
 const std::vector<const char*> _validationLayers = {
     "VK_LAYER_KHRONOS_validation"
@@ -42,7 +43,6 @@ struct SwapChainSupportDetails {
 };
 
 
-
 class VkRenderer {
 
 public:
@@ -50,6 +50,7 @@ public:
 
 
 private:
+        
     /// Set window dimensions
     static constexpr uint32_t WIDTH = 800;
     static constexpr uint32_t HEIGHT = 600;
@@ -117,6 +118,7 @@ private:
     void CreateImageViews();
 
     void createGraphicsPipeline();
+    VkShaderModule createShaderModule(const std::vector<char>& code);
 
     static void VK_CHECK_RESULT(VkResult result, std::string action)
     {
