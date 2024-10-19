@@ -90,6 +90,10 @@ private:
     std::vector<VkImageView> _swapChainImageViews;
 
     VkPipelineLayout _pipelineLayout;
+    
+    VkRenderPass _renderPass;
+ 
+
 
     void InitWindow();
     void InitVulkan();  // Initializes Vulkan
@@ -121,6 +125,8 @@ private:
 
     void createGraphicsPipeline();
     VkShaderModule createShaderModule(const std::vector<char>& code);
+
+    void createRenderPass();
     
 
     static void VK_CHECK_RESULT(VkResult result, std::string action)
