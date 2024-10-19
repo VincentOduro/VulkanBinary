@@ -89,6 +89,8 @@ private:
 
     std::vector<VkImageView> _swapChainImageViews;
 
+    VkPipelineLayout _pipelineLayout;
+
     void InitWindow();
     void InitVulkan();  // Initializes Vulkan
     void MainLoop();    // Main game loop
@@ -119,6 +121,7 @@ private:
 
     void createGraphicsPipeline();
     VkShaderModule createShaderModule(const std::vector<char>& code);
+    
 
     static void VK_CHECK_RESULT(VkResult result, std::string action)
     {
