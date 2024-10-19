@@ -92,6 +92,8 @@ private:
     VkPipelineLayout _pipelineLayout;
     
     VkRenderPass _renderPass;
+
+    VkPipeline _graphicsPipeline;
  
 
 
