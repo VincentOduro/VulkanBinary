@@ -95,6 +95,7 @@ private:
 
     VkPipeline _graphicsPipeline;
  
+    std::vector<VkFramebuffer> swapChainFramebuffers;
 
 
     void InitWindow();
@@ -129,6 +130,8 @@ private:
     VkShaderModule createShaderModule(const std::vector<char>& code);
 
     void createRenderPass();
+
+    void createFramebuffers();
     
 
     static void VK_CHECK_RESULT(VkResult result, std::string action)
