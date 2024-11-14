@@ -95,7 +95,14 @@ private:
 
     VkPipeline _graphicsPipeline;
  
-    std::vector<VkFramebuffer> swapChainFramebuffers;
+    std::vector<VkFramebuffer> _swapChainFramebuffers;
+
+    VkCommandPool _commandPool;
+    VkCommandBuffer _commandBuffer;
+
+    VkSemaphore _imageAvailableSemaphore;
+    VkSemaphore _renderFinishedSemaphore;
+    VkFence _inFlightFence;
 
 
     void InitWindow();
@@ -126,13 +133,22 @@ private:
 
     void CreateImageViews();
 
-    void createGraphicsPipeline();
-    VkShaderModule createShaderModule(const std::vector<char>& code);
+    void CreateGraphicsPipeline();
+    VkShaderModule CreateShaderModule(const std::vector<char>& code);
 
-    void createRenderPass();
+    void CreateRenderPass();
 
-    void createFramebuffers();
+    void CreateFramebuffers();
+
+    void CreateCommandPool();
+
+    void CreateCommandBuffer();
+
+    void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
     
+    void DrawFrame();
+
+    void CreateSyncObjects();
 
     static void VK_CHECK_RESULT(VkResult result, std::string action)
     {
