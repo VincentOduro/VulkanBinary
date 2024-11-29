@@ -931,6 +931,30 @@ void VkRenderer::CreateSyncObjects()
     }
 }
 
+void VkRenderer::RecreateSwapChain()
+{
+    vkDeviceWaitIdle(_device);
+
+    CleanupSwapChain();
+
+    CreateSwapChain();
+    CreateImageViews();
+    CreateFramebuffers();
+}
+
+void VkRenderer::CleanupSwapChain()
+{
+    for (auto framebuffer : _swapChainFramebuffers) {
+        vkDestroyFramebuffer(_device, framebuffer, nullptr);
+    }
+
+    for (auto imageView : _swapChainImageViews) {
+        vkDestroyImageView(_device, imageView, nullptr);
+    }
+
+    vkDestroySwapchainKHR(_device, _swapChain, nullptr);
+}
+
 void VkRenderer::PrintDebugInfo()
 {
     uint32_t extensionCount = 0;
