@@ -16,6 +16,8 @@
 #include <optional>
 #include <set>
 
+#include "Vertex.h"
+
 
 #include <vulkan/vk_enum_string_helper.h >
 const std::vector<const char*> _validationLayers = {
@@ -47,7 +49,7 @@ class VkRenderer {
 
 public:
     void run();
-
+    bool _framebufferResized = false;
 
 private:
         
@@ -100,11 +102,18 @@ private:
     std::vector<VkFramebuffer> _swapChainFramebuffers;
 
     VkCommandPool _commandPool;
-    VkCommandBuffer _commandBuffer;
+    std::vector<VkCommandBuffer> _commandBuffers;
 
-    VkSemaphore _imageAvailableSemaphore;
-    VkSemaphore _renderFinishedSemaphore;
-    VkFence _inFlightFence;
+    std::vector<VkSemaphore> _imageAvailableSemaphores;
+    std::vector<VkSemaphore> _renderFinishedSemaphores;
+    std::vector<VkFence>  _inFlightFences;
+
+    uint32_t _currentFrame = 0;
+
+    VkBuffer _vertexBuffer;
+    VkDeviceMemory _vertexBufferMemory;
+
+    
 
 
     void InitWindow();
@@ -144,7 +153,7 @@ private:
 
     void CreateCommandPool();
 
-    void CreateCommandBuffer();
+    void CreateCommandBuffers();
 
     void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
     
@@ -156,7 +165,15 @@ private:
 
     void CleanupSwapChain();
 
+    void CreateVertexBuffer();
 
+    void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+
+    void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+
+    uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+
+    //static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
     static void VK_CHECK_RESULT(VkResult result, std::string action)
     {
@@ -166,6 +183,13 @@ private:
             throw std::runtime_error("failed to " + action + "!. Error: " + string_VkResult(result));
         }
 #endif
+    }
+
+    static void FramebufferResizeCallback(GLFWwindow* window, int width, int height)
+    {
+        auto app = reinterpret_cast<VkRenderer*>(glfwGetWindowUserPointer(window));
+
+        app->_framebufferResized = true;
     }
 
     void PrintDebugInfo();
